@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+	"fmt"
 	"github.com/ZakSlinin/licey-maps-backend/nav-point-service/internal/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -20,13 +22,12 @@ func (r *NavPointRepository) CreateNavPoint(navPoint *model.NavPoint) (string, e
 	return navPoint.Room, nil
 }
 
-func (r *NavPointRepository) GetNavPointByNavPointID(navPointId string) ([]model.NavPoint, error) {
+func (r *NavPointRepository) GetNavPointByNavPointID(ctx context.Context, navPointId string) ([]model.NavPoint, error) {
 	var navPoints []model.NavPoint
 	query := `SELECT * FROM navPoint WHERE nav_point_id = $1`
 
-	_, err := r.db.Exec(query, navPointId)
-	if err != nil {
-		return nil, err
+	if err := r.db.SelectContext(ctx, &navPoints, query, navPointId); err != nil {
+		return nil, fmt.Errorf("failed to get nav_point by id %s; error: %d", navPointId, err)
 	}
 
 	return navPoints, nil
