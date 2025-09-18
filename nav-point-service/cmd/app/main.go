@@ -19,9 +19,9 @@ import (
 
 func main() {
 	// 1. Конфиг из переменных окружения
-	dbURL := os.Getenv("DATABASE_URL")
+	dbURL := os.Getenv("DB_HOST")
 	if dbURL == "" {
-		log.Fatal("DATABASE_URL is not set")
+		log.Fatal("DB_HOST is not set")
 	}
 
 	// 2. Подключение к БД
@@ -61,12 +61,8 @@ func main() {
 	r.POST("/create-nav-point", navPointHandler.CreateNavPoint)
 	r.GET("/get-nav-point", navPointHandler.GetNavPointByNavPointId)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	log.Printf("Server started on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Printf("Server started on 8080")
+	log.Fatal(http.ListenAndServe("8080", nil))
 
-	r.Run(":" + os.Getenv("PORT"))
+	r.Run("8080")
 }
