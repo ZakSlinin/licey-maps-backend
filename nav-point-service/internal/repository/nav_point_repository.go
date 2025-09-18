@@ -11,15 +11,19 @@ type NavPointRepository struct{ db *sqlx.DB }
 
 func NewNavPointRepository(db *sqlx.DB) *NavPointRepository { return &NavPointRepository{db: db} }
 
-func (r *NavPointRepository) CreateNavPoint(navPoint *model.NavPoint) (string, error) {
-	query := `INSERT INTO navPoint (id, nav_point_id, orientation, room, type, floor) VALUES ($1, $2, $3, $4, $5) RETURNING nav_point_id`
+func (r *NavPointRepository) CreateNavPoint(ctx context.Context, orientation string, room, navType string, floor int) (string, error) {
 
-	_, err := r.db.Exec(query, navPoint.ID, navPoint.NavPointID, navPoint.Orientation, navPoint.Room, navPoint.Type, navPoint.Floor)
+	query := `
+        INSERT INTO navPoint (orientation, room, type, floor)
+        VALUES ($1, $2, $3, $4)
+        RETURNING room
+    `
+	_, err := r.db.Exec(query, orientation, room, navType, floor)
 	if err != nil {
 		return "", err
 	}
 
-	return navPoint.Room, nil
+	return room, nil
 }
 
 func (r *NavPointRepository) GetNavPointByNavPointID(ctx context.Context, navPointId string) ([]model.NavPoint, error) {
