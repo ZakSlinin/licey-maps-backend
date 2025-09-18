@@ -17,18 +17,30 @@ func NewNavPointHandler(service *service.NavPointService) *NavPointHandler {
 	}
 }
 
-func (h *NavPointHandler) CreateNavPoint(c *gin.Context) (*model.NavPoint, error) {
+func (h *NavPointHandler) CreateNavPoint(c *gin.Context) {
 	var navPoint model.NavPoint
 	if err := c.Bind(&navPoint); err != nil {
-		return nil, err
+		return
 	}
 
 	createdNavPoint, err := h.service.CreateNavPoint(c.Request.Context(), navPoint)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return nil, err
+		return
 	}
 
 	c.JSON(http.StatusOK, createdNavPoint)
-	return &navPoint, nil
+	return
+}
+
+func (h *NavPointHandler) GetNavPointByNavPointId(c *gin.Context) {
+	navPointId := c.Param("navPointId")
+
+	getNavPoint, err := h.service.GetNavPointByNavPointId(c.Request.Context(), navPointId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, getNavPoint)
 }

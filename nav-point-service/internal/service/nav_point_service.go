@@ -27,9 +27,9 @@ func (s *NavPointService) CreateNavPoint(ctx context.Context, navPoint model.Nav
 }
 
 func (s *NavPointService) GetNavPointByNavPointId(ctx context.Context, navPointId string) ([]model.NavPoint, error) {
-	navPoints, err := s.repo.GetNavPointByNavPointID(ctx, navPointId)
+	navPoint, err := s.repo.GetNavPointByNavPointID(ctx, navPointId)
 	if err != nil {
 		return nil, err
 	}
-	return navPoints, nil
+	return navPoint, nil
 }
