@@ -1,28 +1,35 @@
+version: "3.9"
+
 services:
   nav-point-service:
-    build:
-      context: .
+    build: .
     ports:
       - "8080:8080"
-    volumes:
-      - ./nav-point-service:/nav-point-service
-
     environment:
       - DB_HOST=database
       - DB_NAME=dbname
       - DB_USER=dbuser
       - DB_PASS=pass
+      - SERVICE=nav
+    depends_on:
+      - database
 
-    command: >
-     sh -c "go run ./cmd/app/main.go"
-    
-
+  point-service:
+    build: .
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+      - SERVICE=point
     depends_on:
       - database
 
   database:
-      image: postgres:17.2-bookworm
-      environment:
-        - POSTGRES_DB=dbname
-        - POSTGRES_USER=dbuser
-        - POSTGRES_PASSWORD=pass
+    image: postgres:17.2-bookworm
+    environment:
+      - POSTGRES_DB=dbname
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=pass
