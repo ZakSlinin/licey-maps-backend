@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/ZakSlinin/licey-maps-backend/nav-point-service/internal/model"
 	"github.com/ZakSlinin/licey-maps-backend/nav-point-service/internal/service"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type NavPointHandler struct {
@@ -30,11 +31,10 @@ func (h *NavPointHandler) CreateNavPoint(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, createdNavPoint)
-	return
 }
 
 func (h *NavPointHandler) GetNavPointByNavPointId(c *gin.Context) {
-	navPointId := c.Param("navPointId")
+	navPointId := c.Query("navPointId")
 
 	getNavPoint, err := h.service.GetNavPointByNavPointId(c.Request.Context(), navPointId)
 	if err != nil {

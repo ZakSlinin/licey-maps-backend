@@ -17,12 +17,14 @@ func NewNavPointService(repo *repository.NavPointRepository) *NavPointService {
 }
 
 func (s *NavPointService) CreateNavPoint(ctx context.Context, navPoint model.NavPoint) (*model.NavPoint, error) {
-	_, err := s.repo.CreateNavPoint(ctx, navPoint.Orientation, navPoint.Room, navPoint.Type, navPoint.Floor)
+	createdId, err := s.repo.CreateNavPoint(ctx, navPoint.Orientation, navPoint.Room, navPoint.Type, navPoint.Floor)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create navPoint: %w", err)
 	}
 
+	// Устанавливаем созданный ID в объект
+	navPoint.ID = createdId
 	return &navPoint, nil
 }
 

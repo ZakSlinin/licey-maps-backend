@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/ZakSlinin/licey-maps-backend/nav-point-service/internal/handler"
 	"github.com/ZakSlinin/licey-maps-backend/nav-point-service/internal/repository"
 	"github.com/ZakSlinin/licey-maps-backend/nav-point-service/internal/service"
@@ -12,14 +15,18 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // PostgreSQL драйвер
-	"log"
-	"net/http"
-	"os"
 )
 
 func main() {
 	// 1. Конфиг из переменных окружения
-	dbURL := os.Getenv("DB_HOST")
+	dbURL := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASS"),
+		os.Getenv("DB_NAME"),
+	)
+
 	if dbURL == "" {
 		log.Fatal("DB_HOST is not set")
 	}
@@ -38,7 +45,7 @@ func main() {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://../../migrations",
+		"file://migrations",
 		"postgres", driver)
 	if err != nil {
 		log.Fatalf("ошибка сборки миграций: %v", err)
@@ -61,8 +68,8 @@ func main() {
 	r.POST("/create-nav-point", navPointHandler.CreateNavPoint)
 	r.GET("/get-nav-point", navPointHandler.GetNavPointByNavPointId)
 
-	log.Printf("Server started on 8080")
-	log.Fatal(http.ListenAndServe("8080", nil))
-
-	r.Run("8080")
+	log.Printf("Server started on :8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("server failed to start: %v", err)
+	}
 }
