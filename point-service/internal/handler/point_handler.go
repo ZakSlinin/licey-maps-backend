@@ -7,15 +7,15 @@ import (
 	"net/http"
 )
 
-type PointService struct {
+type PointHandler struct {
 	service *service.PointService
 }
 
-func NewPointService(service *service.PointService) *PointService {
-	return &PointService{service: service}
+func NewPointHandler(service *service.PointService) *PointHandler {
+	return &PointHandler{service: service}
 }
 
-func (h *PointService) CreatePoint(c *gin.Context) {
+func (h *PointHandler) CreatePoint(c *gin.Context) {
 	var point model.Point
 	if err := c.Bind(&point); err != nil {
 		return
@@ -30,7 +30,7 @@ func (h *PointService) CreatePoint(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"point": createdPoint})
 }
 
-func (h *PointService) GetPointByPointId(c *gin.Context) {
+func (h *PointHandler) GetPointByPointId(c *gin.Context) {
 	pointId := c.Query("pointId")
 
 	getPoint, err := h.service.GetPointByPointId(c.Request.Context(), pointId)
