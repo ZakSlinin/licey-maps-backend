@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licey Maps - Поиск маршрутов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .route-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        .step-number {
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .loading {
+            text-align: center;
+            color: #6c757d;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Licey Maps - Поиск маршрутов</h1>
+        
+        <div class="form-group">
+            <label for="startPoint">Откуда:</label>
+            <select id="startPoint">
+                <option value="">Выберите начальную точку</option>
+                <option value="1">Главный вход</option>
+                <option value="2">Кабинет 101</option>
+                <option value="3">Кабинет 102</option>
+                <option value="4">Кабинет 103</option>
+                <option value="5">Кабинет 104</option>
+                <option value="6">Кабинет 105</option>
+                <option value="7">Кабинет 106</option>
+                <option value="8">Кабинет 107</option>
+                <option value="9">Кабинет 108</option>
+                <option value="10">Кабинет 109</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="endPoint">Куда:</label>
+            <select id="endPoint">
+                <option value="">Выберите конечную точку</option>
+                <option value="1">Главный вход</option>
+                <option value="2">Кабинет 101</option>
+                <option value="3">Кабинет 102</option>
+                <option value="4">Кабинет 103</option>
+                <option value="5">Кабинет 104</option>
+                <option value="6">Кабинет 105</option>
+                <option value="7">Кабинет 106</option>
+                <option value="8">Кабинет 107</option>
+                <option value="9">Кабинет 108</option>
+                <option value="10">Кабинет 109</option>
+            </select>
+        </div>
+        
+        <button id="findRouteBtn" onclick="findRoute()">Найти маршрут</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080';
+        
+        async function findRoute() {
+            const startPoint = document.getElementById('startPoint').value;
+            const endPoint = document.getElementById('endPoint').value;
+            const resultDiv = document.getElementById('result');
+            const findBtn = document.getElementById('findRouteBtn');
+            
+            if (!startPoint || !endPoint) {
+                showResult('Пожалуйста, выберите начальную и конечную точки', 'error');
+                return;
+            }
+            
+            if (startPoint === endPoint) {
+                showResult('Начальная и конечная точки не могут быть одинаковыми', 'error');
+                return;
+            }
+            
+            findBtn.disabled = true;
+            findBtn.textContent = 'Поиск...';
+            showResult('Поиск маршрута...', 'loading');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/find-route`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        start_point_id: parseInt(startPoint),
+                        end_point_id: parseInt(endPoint)
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Ошибка поиска маршрута');
+                }
+                
+                const route = await response.json();
+                displayRoute(route);
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showResult(`Ошибка: ${error.message}`, 'error');
+            } finally {
+                findBtn.disabled = false;
+                findBtn.textContent = 'Найти маршрут';
+            }
+        }
+        
+        function displayRoute(route) {
+            const resultDiv = document.getElementById('result');
+            
+            let html = `
+                <div class="success">
+                    <h3>✅ Маршрут найден!</h3>
+                    <p><strong>Количество шагов:</strong> ${route.path.length}</p>
+                    <p><strong>Путь через точки:</strong> ${route.path.join(' → ')}</p>
+                    
+                    <h4>Пошаговый маршрут:</h4>
+            `;
+            
+            route.rooms.forEach((room, index) => {
+                html += `
+                    <div class="route-step">
+                        <div class="step-number">${index + 1}</div>
+                        <div>${room}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultDiv.innerHTML = html;
+        }
+        
+        function showResult(message, type = '') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+        
+        // Загрузка точек при инициализации
+        async function loadPoints() {
+            try {
+                // Здесь можно добавить загрузку точек с сервера
+                console.log('Точки загружены');
+            } catch (error) {
+                console.error('Ошибка загрузки точек:', error);
+            }
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', loadPoints);
+    </script>
+</body>
+</html>
