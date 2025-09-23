@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/ZakSlinin/licey-maps-backend/internal/model"
-	"github.com/ZakSlinin/licey-maps-backend/internal/repository"
+
+	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/model"
+	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/repository"
 )
 
 type PointService struct {

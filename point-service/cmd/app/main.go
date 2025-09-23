@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/ZakSlinin/licey-maps-backend/internal/handler"
-	"github.com/ZakSlinin/licey-maps-backend/internal/repository"
-	"github.com/ZakSlinin/licey-maps-backend/internal/service"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
+	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/handler"
+	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/repository"
+	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -54,7 +56,28 @@ func main() {
 
 	// 4. Применяем миграции
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("ошибка миграций: %v", err)
+		if strings.Contains(err.Error(), "Dirty database version") {
+			log.Println("Исправляем dirty database version...")
+			// Извлекаем номер версии из ошибки
+			versionStr := strings.Split(err.Error(), "version ")[1]
+			versionStr = strings.Split(versionStr, ".")[0]
+			version, parseErr := strconv.Atoi(versionStr)
+			if parseErr != nil {
+				log.Fatalf("не удалось распарсить версию: %v", parseErr)
+			}
+
+			if forceErr := m.Force(version); forceErr != nil {
+				log.Fatalf("ошибка принудительного исправления версии: %v", forceErr)
+			}
+			if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+				log.Fatalf("ошибка миграций после исправления: %v", err)
+			}
+		} else if strings.Contains(err.Error(), "no migration found") {
+			log.Println("Пропускаем отсутствующие миграции...")
+			// Просто продолжаем работу, если миграция не найдена
+		} else {
+			log.Fatalf("ошибка миграций: %v", err)
+		}
 	}
 	fmt.Println("Успешная сборка миграций.")
 

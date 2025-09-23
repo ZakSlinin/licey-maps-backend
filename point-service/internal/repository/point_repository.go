@@ -3,10 +3,11 @@ package repository
 import (
 	"context"
 	"fmt"
-	"github.com/ZakSlinin/licey-maps-backend/internal/model"
-	"github.com/jmoiron/sqlx"
 	"log"
 	"strconv"
+
+	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/model"
+	"github.com/jmoiron/sqlx"
 )
 
 type PointRepository struct{ db *sqlx.DB }

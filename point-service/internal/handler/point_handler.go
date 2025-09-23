@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"github.com/ZakSlinin/licey-maps-backend/internal/model"
-	"github.com/ZakSlinin/licey-maps-backend/internal/service"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/model"
+	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/service"
+	"github.com/gin-gonic/gin"
 )
 
 type PointHandler struct {

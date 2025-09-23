@@ -14,14 +14,14 @@ type NavPointRepository struct{ db *sqlx.DB }
 
 func NewNavPointRepository(db *sqlx.DB) *NavPointRepository { return &NavPointRepository{db: db} }
 
-func (r *NavPointRepository) CreateNavPoint(ctx context.Context, orientation string, room, navType string, floor int) (int, error) {
+func (r *NavPointRepository) CreateNavPoint(ctx context.Context, orientation string, neighbours []int, room, navType string, floor int) (int, error) {
 	var returnedId int
 	query := `
-        INSERT INTO nav_points (orientation, room, type, floor)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO nav_points (orientation, neighbours, room, type, floor)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING id
     `
-	err := r.db.QueryRowContext(ctx, query, orientation, room, navType, floor).Scan(&returnedId)
+	err := r.db.QueryRowContext(ctx, query, orientation, neighbours, room, navType, floor).Scan(&returnedId)
 	if err != nil {
 		return 0, err
 	}
@@ -61,4 +61,32 @@ func (r *NavPointRepository) CheckSequenceStatus(ctx context.Context) error {
 
 	log.Printf("Current sequence value: %d", currentValue)
 	return nil
+}
+
+// GetAllNavPoints возвращает все навигационные точки
+func (r *NavPointRepository) GetAllNavPoints(ctx context.Context) ([]model.NavPoint, error) {
+	var navPoints []model.NavPoint
+
+	query := `SELECT * FROM nav_points ORDER BY id`
+
+	if err := r.db.SelectContext(ctx, &navPoints, query); err != nil {
+		return nil, fmt.Errorf("failed to get all nav_points: %v", err)
+	}
+
+	log.Printf("Found %d nav_points", len(navPoints))
+	return navPoints, nil
+}
+
+// GetAllPoints возвращает все точки (аналог point-service)
+func (r *NavPointRepository) GetAllPoints(ctx context.Context) ([]model.Point, error) {
+	var points []model.Point
+
+	query := `SELECT * FROM points ORDER BY id`
+
+	if err := r.db.SelectContext(ctx, &points, query); err != nil {
+		return nil, fmt.Errorf("failed to get all points: %v", err)
+	}
+
+	log.Printf("Found %d points", len(points))
+	return points, nil
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/ZakSlinin/licey-maps-backend/nav-point-service/internal/handler"
 	"github.com/ZakSlinin/licey-maps-backend/nav-point-service/internal/repository"
@@ -53,7 +55,25 @@ func main() {
 
 	// 4. Применяем миграции
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("ошибка миграций: %v", err)
+		if strings.Contains(err.Error(), "Dirty database version") {
+			log.Println("Исправляем dirty database version...")
+			// Извлекаем номер версии из ошибки
+			versionStr := strings.Split(err.Error(), "version ")[1]
+			versionStr = strings.Split(versionStr, ".")[0]
+			version, parseErr := strconv.Atoi(versionStr)
+			if parseErr != nil {
+				log.Fatalf("не удалось распарсить версию: %v", parseErr)
+			}
+
+			if forceErr := m.Force(version); forceErr != nil {
+				log.Fatalf("ошибка принудительного исправления версии: %v", forceErr)
+			}
+			if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+				log.Fatalf("ошибка миграций после исправления: %v", err)
+			}
+		} else {
+			log.Fatalf("ошибка миграций: %v", err)
+		}
 	}
 	fmt.Println("Успешная сборка миграций.")
 
@@ -67,6 +87,8 @@ func main() {
 	// 6. Запуск сервиса
 	r.POST("/create-nav-point", navPointHandler.CreateNavPoint)
 	r.GET("/get-nav-point", navPointHandler.GetNavPointByNavPointId)
+	r.POST("/find-route", navPointHandler.FindRoute)
+	r.GET("/find-route", navPointHandler.FindRouteByQuery)
 
 	log.Printf("Server started on :8080")
 	if err := r.Run(":8080"); err != nil {

@@ -10,9 +10,11 @@ services:
       - DB_NAME=dbname
       - DB_USER=dbuser
       - DB_PASS=pass
-      - SERVICE=nav
+    working_dir: /app/nav-point-service
+    command: ["./main"]
     depends_on:
       - database
+    restart: unless-stopped
 
   point-service:
     build: .
@@ -23,13 +25,23 @@ services:
       - DB_NAME=dbname
       - DB_USER=dbuser
       - DB_PASS=pass
-      - SERVICE=point
+    working_dir: /app/point-service
+    command: ["./main"]
     depends_on:
       - database
+    restart: unless-stopped
 
   database:
     image: postgres:17.2-bookworm
+    ports:
+      - "5433:5432"
     environment:
       - POSTGRES_DB=dbname
       - POSTGRES_USER=dbuser
       - POSTGRES_PASSWORD=pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
