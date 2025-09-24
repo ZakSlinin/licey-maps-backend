@@ -2,12 +2,14 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"strconv"
 
 	"github.com/ZakSlinin/licey-maps-backend/point-service/internal/model"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type PointRepository struct{ db *sqlx.DB }
@@ -22,7 +24,7 @@ func (r *PointRepository) CreatePoint(ctx context.Context, name string, env []st
 		RETURNING id
 	`
 
-	err := r.db.QueryRowContext(ctx, query, name, env, navPoint).Scan(&returnedId)
+	err := r.db.QueryRowContext(ctx, query, name, pq.Array(env), navPoint).Scan(&returnedId)
 	if err != nil {
 		return 0, err
 	}
@@ -31,9 +33,7 @@ func (r *PointRepository) CreatePoint(ctx context.Context, name string, env []st
 	return returnedId, nil
 }
 
-func (r *PointRepository) GetPointByID(ctx context.Context, pointId string) ([]model.Point, error) {
-	var point []model.Point
-
+func (r *PointRepository) GetPointByID(ctx context.Context, pointId string) (*model.Point, error) {
 	id, err := strconv.Atoi(pointId)
 	if err != nil {
 		return nil, fmt.Errorf("invalid point id: %s", pointId)
@@ -41,24 +41,29 @@ func (r *PointRepository) GetPointByID(ctx context.Context, pointId string) ([]m
 
 	log.Printf("Getting point with id: %d", id)
 
-	query := `SELECT * FROM points WHERE id = $1`
+	var point model.Point
+	query := `SELECT id, name, env, nav_point FROM points WHERE id = $1`
 
-	if err := r.db.SelectContext(ctx, &point, query, id); err != nil {
+	// Используем Get вместо GetContext для лучшей совместимости
+	if err := r.db.Get(&point, query, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to get point by id: %w", err)
 	}
 
-	log.Printf("Found %d points", len(point))
-	return point, nil
+	log.Printf("Found point: %+v", point)
+	return &point, nil
 }
 
 func (r *PointRepository) SearchByEnv(ctx context.Context, env string) ([]model.Point, error) {
-	var point []model.Point
+	var points []model.Point
 
-	query := `SELECT * FROM points WHERE env @> ARRAY[$1]`
-	if err := r.db.SelectContext(ctx, &point, query, env); err != nil {
+	query := `SELECT id, name, env, nav_point FROM points WHERE $1 = ANY(env)`
+	if err := r.db.Select(&points, query, env); err != nil {
 		return nil, fmt.Errorf("failed to get point by env: %w", err)
 	}
 
-	log.Printf("Found %d points", len(point))
-	return point, nil
+	log.Printf("Found %d points", len(points))
+	return points, nil
 }

@@ -33,14 +33,22 @@ func (h *PointHandler) CreatePoint(c *gin.Context) {
 
 func (h *PointHandler) GetPointByPointId(c *gin.Context) {
 	pointId := c.Query("pointId")
+	if pointId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "pointId is required"})
+		return
+	}
 
-	getPoint, err := h.service.GetPointByPointId(c.Request.Context(), pointId)
+	point, err := h.service.GetPointByPointId(c.Request.Context(), pointId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	if point == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "point not found"})
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"point": getPoint})
+	c.JSON(http.StatusOK, point)
 }
 
 func (h *PointHandler) FindPoint(c *gin.Context) {

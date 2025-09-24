@@ -27,7 +27,7 @@ func (s *PointService) CreatePoint(ctx context.Context, point model.Point) (*mod
 	return &point, nil
 }
 
-func (s *PointService) GetPointByPointId(ctx context.Context, pointId string) ([]model.Point, error) {
+func (s *PointService) GetPointByPointId(ctx context.Context, pointId string) (*model.Point, error) {
 	point, err := s.repo.GetPointByID(ctx, pointId)
 	if err != nil {
 		return nil, err
