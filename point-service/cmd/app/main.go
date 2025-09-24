@@ -91,6 +91,7 @@ func main() {
 	// 6. Роуты микросервиса
 	r.POST("/create-user", pointHandler.CreatePoint)
 	r.GET("/get-user", pointHandler.GetPointByPointId)
+	r.GET("/find-point", pointHandler.FindPoint) // by env
 
 	// 7. Запуск сервиса
 	log.Printf("User service started on :8081")
