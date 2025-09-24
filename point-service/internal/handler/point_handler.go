@@ -42,3 +42,15 @@ func (h *PointHandler) GetPointByPointId(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"point": getPoint})
 }
+
+func (h *PointHandler) FindPoint(c *gin.Context) {
+	env := c.Query("env")
+
+	getPoint, err := h.service.SearchPoint(c.Request.Context(), env)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"point": getPoint})
+}
