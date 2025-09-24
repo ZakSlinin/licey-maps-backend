@@ -50,3 +50,15 @@ func (r *PointRepository) GetPointByID(ctx context.Context, pointId string) ([]m
 	log.Printf("Found %d points", len(point))
 	return point, nil
 }
+
+func (r *PointRepository) SearchByEnv(ctx context.Context, env string) ([]model.Point, error) {
+	var point []model.Point
+
+	query := `SELECT * FROM points WHERE env @> ARRAY[$1]`
+	if err := r.db.SelectContext(ctx, &point, query, env); err != nil {
+		return nil, fmt.Errorf("failed to get point by env: %w", err)
+	}
+
+	log.Printf("Found %d points", len(point))
+	return point, nil
+}
