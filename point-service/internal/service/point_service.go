@@ -34,3 +34,19 @@ func (s *PointService) GetPointByPointId(ctx context.Context, pointId string) ([
 	}
 	return point, nil
 }
+
+func (s *PointService) SearchPoint(ctx context.Context, env string) (*[]model.Point, error) {
+	var point []model.Point
+
+	point, err := s.repo.SearchByEnv(ctx, env)
+
+	if err != nil {
+		return nil, fmt.Errorf("search point error: %v", err)
+	}
+
+	if point == nil {
+		return nil, nil
+	}
+
+	return &point, nil
+}
