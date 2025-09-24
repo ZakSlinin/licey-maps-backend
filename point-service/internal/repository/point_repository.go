@@ -60,7 +60,7 @@ func (r *PointRepository) SearchByEnv(ctx context.Context, env string) ([]model.
 	var points []model.Point
 
 	query := `SELECT id, name, env, nav_point FROM points WHERE $1 = ANY(env)`
-	if err := r.db.Select(&points, query, env); err != nil {
+	if err := r.db.SelectContext(ctx, &points, query, env); err != nil {
 		return nil, fmt.Errorf("failed to get point by env: %w", err)
 	}
 

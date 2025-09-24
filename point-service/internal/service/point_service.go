@@ -35,18 +35,16 @@ func (s *PointService) GetPointByPointId(ctx context.Context, pointId string) (*
 	return point, nil
 }
 
-func (s *PointService) SearchPoint(ctx context.Context, env string) (*[]model.Point, error) {
-	var point []model.Point
-
-	point, err := s.repo.SearchByEnv(ctx, env)
-
+func (s *PointService) SearchPoint(ctx context.Context, env string) ([]model.Point, error) {
+	points, err := s.repo.SearchByEnv(ctx, env)
 	if err != nil {
 		return nil, fmt.Errorf("search point error: %v", err)
 	}
 
-	if point == nil {
-		return nil, nil
+	// Если точек не найдено, возвращаем пустой массив вместо nil
+	if points == nil {
+		return []model.Point{}, nil
 	}
 
-	return &point, nil
+	return points, nil
 }
